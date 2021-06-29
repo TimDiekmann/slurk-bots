@@ -13,7 +13,7 @@ class MinimalBot:
     sio = socketio.Client(logger=True)
     user_id = None
 
-    def __init__(self, token, host, port):
+    def __init__(self, token, user, host, port):
         """Designing an experiment in slurk usually involves
         writing one or more bots.
         This bot serves as a minimal example demonstrating
@@ -31,6 +31,7 @@ class MinimalBot:
         :type port: int
         """
         self.token = token
+        self.user = user
         self.uri = host
         if port is not None:
             self.uri += f':{port}'
@@ -43,7 +44,7 @@ class MinimalBot:
         # important to specify the token as it is i.e. no Bearer prefix
         self.sio.connect(
             self.uri,
-            headers={'Authorization': self.token, 'Name': 'MinimalBot'}
+            headers={'Authorization': self.token, 'user': self.user}
         )
         # wait until the connection with the server ends
         self.sio.wait()
@@ -101,6 +102,10 @@ if __name__ == '__main__':
         token = {'default': os.environ['TOKEN']}
     else:
         token = {'required': True}
+    if 'USER' in os.environ:
+        user = {'default': os.environ['USER']}
+    else:
+        user = {'required': True}
     chat_host = {'default': os.environ.get('CHAT_HOST', 'http://localhost')}
     chat_port = {'default': os.environ.get('CHAT_PORT')}
 
@@ -108,6 +113,9 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--token',
                         help='token for logging in as bot (see SERVURL/token)',
                         **token)
+    parser.add_argument('-u', '--user',
+                        help='user used for logging in',
+                        **user)
     parser.add_argument('-c', '--chat_host',
                         help='full URL (protocol, hostname) of chat server',
                         **chat_host)
@@ -118,6 +126,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # create bot instance
-    minimal_bot = MinimalBot(args.token, args.chat_host, args.chat_port)
+    minimal_bot = MinimalBot(args.token, args.user, args.chat_host, args.chat_port)
     # connect to chat server
     minimal_bot.run()
